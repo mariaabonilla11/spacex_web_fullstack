@@ -1,0 +1,36 @@
+services:
+  spacex-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spacex-app:latest
+    ports:
+      - "3000:80"
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_REGION=${AWS_REGION}
+      - DYNAMODB_TABLE_NAME=${DYNAMODB_TABLE_NAME}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DEBUG=${DEBUG}
+      - NODE_ENV=production
+      - VUE_APP_API_BASE_URL=/api/v1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  dynamodb_data:
+
+networks:
+  spacex-network:
+    driver: bridge
