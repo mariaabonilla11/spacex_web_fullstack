@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch: # Permite trigger manual
+  repository_dispatch: # Permite trigger desde otros repos
+    types: [deploy-trigger]
 
 env:
   AWS_REGION: us-east-1
@@ -22,6 +24,12 @@ jobs:
         with:
           submodules: "recursive"
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update submodules to latest
+        run: |
+          echo "Updating submodules to latest versions..."
+          git submodule update --remote --merge
+          git status
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -81,6 +89,7 @@ jobs:
 
       - name: Wait for deployment to complete
         run: |
+          echo "Waiting for ECS service to stabilize..."
           aws ecs wait services-stable \
             --cluster $ECS_CLUSTER \
             --services $ECS_SERVICE \
@@ -111,11 +120,15 @@ jobs:
           ALB_DNS="${{ steps.get-alb.outputs.alb_dns }}"
           ALB_URL="http://$ALB_DNS"
 
+          TRIGGERED_BY="${{ github.event.client_payload.repo || 'manual/push' }}"
+
           if [ ${{ job.status }} == 'success' ]; then
             echo "Deployment completed successfully!"
+            echo "Triggered by: $TRIGGERED_BY"
             echo "App URL: $ALB_URL"
             echo "Check your application at the URL above"
           else
             echo "Deployment failed!"
+            echo "Triggered by: $TRIGGERED_BY"
           fi
           echo "ALB DNS: $ALB_DNS"
