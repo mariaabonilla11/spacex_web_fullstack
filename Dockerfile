@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Etapa de construcción del frontend
-FROM --platform=$BUILDPLATFORM node:16-alpine as frontend-builder
+FROM --platform=linux/amd64 node:16-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
@@ -9,14 +9,14 @@ COPY frontend/ .
 RUN npm run build
 
 # Etapa de construcción del backend
-FROM --platform=$BUILDPLATFORM python:3.11-slim as backend-builder
+FROM --platform=linux/amd64 python:3.11-slim as backend-builder
 WORKDIR /app/backend
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Etapa final
-FROM --platform=$TARGETPLATFORM python:3.11-slim
+FROM --platform=linux/amd64 python:3.11-slim
 WORKDIR /app
 
 # Instalar Nginx y dependencias necesarias
