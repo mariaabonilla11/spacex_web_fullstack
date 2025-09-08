@@ -86,21 +86,40 @@ jobs:
             --services $ECS_SERVICE \
             --region $AWS_REGION
 
+      - name: Get ALB DNS name
+        id: get-alb
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers --names spacex-app-alb --query 'LoadBalancers[0].DNSName' --output text)
+          echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
+          echo "Found ALB DNS: $ALB_DNS"
+
       - name: Verify deployment
         run: |
           # Esperar un poco más para asegurar que esté listo
           sleep 30
 
-          # Test health endpoint
-          curl -f http://spacex-app-alb-1407465095.us-east-1.elb.amazonaws.com/health || exit 1
+          # Test health endpoint con URL dinámica
+          ALB_URL="http://${{ steps.get-alb.outputs.alb_dns }}"
+          echo "Testing health endpoint: $ALB_URL/health"
+
+          if curl -f --connect-timeout 10 --max-time 30 "$ALB_URL/health"; then
+            echo "Health check passed!"
+          else
+            echo "Health check failed, checking if app is accessible..."
+            curl -v --connect-timeout 10 --max-time 30 "$ALB_URL/" || echo "App not accessible"
+            exit 1
+          fi
+
           echo "✅ Deployment successful!"
 
       - name: Notify deployment status
         if: always()
         run: |
+          ALB_URL="http://${{ steps.get-alb.outputs.alb_dns }}"
           if [ ${{ job.status }} == 'success' ]; then
             echo "🚀 Deployment completed successfully!"
-            echo "🌐 App URL: http://spacex-app-alb-1407465095.us-east-1.elb.amazonaws.com"
+            echo "🌐 App URL: $ALB_URL"
           else
             echo "❌ Deployment failed!"
           fi
+          echo "🔗 ALB DNS: $ALB_URL"
