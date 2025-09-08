@@ -25,15 +25,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        working-directory: ./backend
         run: |
-          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-asyncio
 
       - name: Run tests
+        working-directory: ./backend
         run: |
-          cd backend
           pytest app/tests/ -v
 
   deploy:
