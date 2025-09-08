@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         run: |
-          pytest app/tests/test_basic_endpoints.py -v
+          PYTHONPATH=$PYTHONPATH:$(pwd) pytest app/tests/test_basic_endpoints.py -v
 
   deploy:
     name: Deploy to AWS ECS
