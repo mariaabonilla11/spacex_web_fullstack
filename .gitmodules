@@ -1,0 +1,6 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/mariaabonilla11/spacexweb_frontend.git
+[submodule "backend"]
+	path = backend
+	url = https://github.com/mariaabonilla11/spacex_web_backend.git
