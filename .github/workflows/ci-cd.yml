@@ -25,12 +25,6 @@ jobs:
           submodules: "recursive"
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update submodules to latest
-        run: |
-          echo "Updating submodules to latest versions..."
-          git submodule update --remote --merge
-          git status
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
